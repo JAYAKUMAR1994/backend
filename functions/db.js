@@ -1,4 +1,4 @@
-// import { MongoClient, ObjectId } from 'mongodb';
+// import { MongoClient } from 'mongodb';
 // Example: Accessing MongoDB connection string from environment variable
 
 // const mongoose = require('mongoose');
@@ -13,13 +13,12 @@
 
 
 
-// const { MongoClient, ObjectId } = require("mongodb");
+// const { MongoClient } = require("mongodb");
 
 // let database;
 
 // async function connectToDatabase() {
 //     const client = await MongoClient.connect('mongodb+srv://vjayakumar661:jaya8807@myapp.eqaklsd.mongodb.net/?retryWrites=true&w=majority');
-//     // const client = await mongoose.connect(mongoDBUri, { useNewUrlParser: true, useUnifiedTopology: true });
 //     database = client.db('library');
 
 //     if (!database) {
@@ -29,7 +28,7 @@
 //     return database;
 // }
 
-// module.exports={ connectToDatabase, ObjectId };
+// module.exports={ connectToDatabase };
 
 
 

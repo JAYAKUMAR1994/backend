@@ -5,6 +5,8 @@ const path = require("path");
 const cors = require('cors'); // Import the cors middleware
 const serverless = require('serverless-http')
 
+const fs = require("fs");
+
 const { connectToDatabase } = require("./db");
 const { ObjectId } = require('mongodb');
 
@@ -42,7 +44,7 @@ app.post('/upload', upload.single('image'), async (req, res) => {
     const processor = req.body.processor; 
     const accessories = req.body.accessories; 
 
-   console.log({ imagePath, mobile, rate,ram,rom,display,camera,battery,processor,accessories })
+   
     const db = await connectToDatabase();
     const imagesCollection = db.collection('images');
     const result = await imagesCollection.insertOne({ imagePath, mobile, rate,ram,rom,display,camera,battery,processor,accessories });
@@ -60,7 +62,7 @@ app.use('/uploads', express.static('uploads'));
 app.get('/Load_Images', async (req, res) => {
   try {
       const db = await connectToDatabase();
-      console.log(db)
+    
       const imagesCollection = db.collection('images');
       const images = await imagesCollection.find({}).toArray();
      
@@ -80,17 +82,62 @@ res.send({image:images})
 
 //delete
 
+// app.delete('/image/:id', async (req, res) => {
+//   try {
+//     const id = req.params.id;
+//     const db = await connectToDatabase();
+//     const imagesCollection = db.collection('images');
+
+//     const result = await imagesCollection.deleteOne({ _id: new ObjectId(id) });
+
+//     if (result.deletedCount === 1) {
+//           // Delete corresponding file from the uploads folder
+//           const imagePathToDelete = path.join(__dirname, result.value.imagePath);
+//           console.log('path' - imagePathToDelete)
+//           await fs.unlinkSync(imagePathToDelete);
+
+//       res.send({ message: 'Image deleted successfully' });
+//     } else {
+//       res.status(404).send({ message: 'Image not found' });
+//     }
+//   } catch (error) {
+//     console.error('Error deleting image:', error);
+//     res.status(500).json({ error: 'Error deleting image', details: error.message });
+//   }
+// });
+
 app.delete('/image/:id', async (req, res) => {
   try {
     const id = req.params.id;
+    console.log('Deleting image with id:', id);
+
     const db = await connectToDatabase();
     const imagesCollection = db.collection('images');
 
-    const result = await imagesCollection.deleteOne({ _id: new ObjectId(id) });
+    const result = await imagesCollection.findOneAndDelete({ _id: new ObjectId(id) });
 
-    if (result.deletedCount === 1) {
+    console.log('Database query result:', result);
+
+    if (result._id) {
+     
+
+      // Replace backslashes with forward slashes in the file path
+      const imagePathToDelete = path.join(__dirname, result.imagePath);
+    
+      // Check if imagePathToDelete is a directory
+      const isDirectory = fs.statSync(imagePathToDelete).isDirectory();
+    
+      if (isDirectory) {
+        // Remove the directory
+        fs.rmdirSync(imagePathToDelete);
+      } else {
+        // Remove the file
+        fs.unlinkSync(imagePathToDelete);
+      }
+
       res.send({ message: 'Image deleted successfully' });
     } else {
+     
       res.status(404).send({ message: 'Image not found' });
     }
   } catch (error) {
@@ -98,7 +145,6 @@ app.delete('/image/:id', async (req, res) => {
     res.status(500).json({ error: 'Error deleting image', details: error.message });
   }
 });
-
 
 
 
@@ -119,11 +165,11 @@ app.delete('/image/:id', async (req, res) => {
 app.get('/Load_Books', async (req, res) => {
   try {
       const db = await connectToDatabase();
-      console.log(db)
+      
       const imagesCollection = db.collection('books');
-      console.log('books', imagesCollection); // Log the collection object
+     
       const books = await imagesCollection.find({}).toArray();
-      console.log('Fetched Books:', books); // Log the fetched books
+      
       res.send({ book: books });
   } catch (error) {
       console.error('Error fetching books:', error);
@@ -145,7 +191,7 @@ app.post('/store_book', async (req, res) => {
   
       const allBooks = await booksCollection.find({}).toArray();
 
-      console.log(allBooks)
+     
 
         res.status(201).json({books: allBooks });
    
@@ -300,7 +346,7 @@ allCategories.forEach(category => {
   });
 });
 
-console.log(allCategories)
+
 // Send the response with the combined categories
 res.send({ image: [allCategories] });
 
